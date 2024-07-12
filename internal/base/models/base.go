@@ -10,7 +10,6 @@ type BaseModel struct {
 	ID        uint      `gorm:"primarykey"`
 	CreatedAt time.Time `gorm:"type:timestamp;default:current_timestamp()"`
 	UpdatedAt time.Time `gorm:"type:timestamp;default:current_timestamp()"`
-	// db        *mysql.MySqlStore
 }
 
 func (model *BaseModel) BeforeCreate(db *gorm.DB) (err error) {

@@ -76,7 +76,6 @@ func (s *UserService) FindUserByID(userId int) (*models.User, error) {
 
 func (s *UserService) UpdateUserByID(userId int, payload dtos.UpdateUserRequest) (*models.User, error) {
 	var user *models.User
-	// var oldDepartmentID *uint
 	if err := models.ValidScope(s.db.DB()).First(&user, userId).Updates(payload).Error; err != nil {
 		s.logger.Error("Cannot Update User Data", zap.Error(err))
 		return nil, err
