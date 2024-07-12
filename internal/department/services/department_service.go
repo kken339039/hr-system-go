@@ -49,7 +49,7 @@ func (s *DepartmentService) FindDepartmentByID(departmentID int) (*models.Depart
 	return department, nil
 }
 
-func (s *DepartmentService) CreateDepartmentByID(payload dtos.CreateDepartmentRequest) (*models.Department, error) {
+func (s *DepartmentService) CreateDepartment(payload dtos.CreateDepartmentRequest) (*models.Department, error) {
 	department := &models.Department{Name: payload.Name}
 	if payload.Descriptions != nil {
 		department.Descriptions = *payload.Descriptions

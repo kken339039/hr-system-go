@@ -83,7 +83,7 @@ func (c *DepartmentController) CreateDepartment(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Create Department"})
 		return
 	}
-	department, err := c.service.CreateDepartmentByID(payload)
+	department, err := c.service.CreateDepartment(payload)
 	if err != nil {
 		c.logger.Error("Cannot not create user", zap.Error(err))
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Create Department"})
