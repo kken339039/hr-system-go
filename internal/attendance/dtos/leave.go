@@ -12,6 +12,7 @@ type LeaveListResponse struct {
 }
 
 type LeaveResponse struct {
+	Id        uint
 	UserName  string
 	StartDate time.Time
 	EndDate   time.Time
@@ -51,6 +52,7 @@ func NewLeaveListResponse(leaves []models.Leave, totalRows int64, pagination uti
 
 func NewLeaveResponse(leave *models.Leave) *LeaveResponse {
 	res := &LeaveResponse{
+		Id:        leave.ID,
 		UserName:  leave.User.Name,
 		StartDate: leave.StartDate,
 		EndDate:   leave.EndDate,

@@ -11,6 +11,7 @@ type UserListResponse struct {
 }
 
 type UserResponse struct {
+	Id             uint
 	Name           *string
 	Email          *string
 	Age            *int
@@ -49,6 +50,7 @@ func NewUserListResponse(users []models.User, totalRows int64, pagination utils.
 
 func NewUserResponse(user *models.User) *UserResponse {
 	res := &UserResponse{
+		Id:     user.ID,
 		Name:   &user.Name,
 		Email:  &user.Email,
 		Age:    &user.Age,

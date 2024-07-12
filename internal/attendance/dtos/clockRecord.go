@@ -12,6 +12,7 @@ type ClockRecordListResponse struct {
 }
 
 type ClockRecordResponse struct {
+	Id       uint
 	UserName string
 	ClockIn  time.Time
 	ClockOut *time.Time
@@ -51,6 +52,7 @@ func NewClockRecordListResponse(ClockRecords []models.ClockRecord, totalRows int
 
 func NewClockRecordResponse(clockRecord *models.ClockRecord) *ClockRecordResponse {
 	res := &ClockRecordResponse{
+		Id:       clockRecord.ID,
 		UserName: clockRecord.User.Name,
 		ClockIn:  clockRecord.ClockIn,
 		ClockOut: clockRecord.ClockOut,
