@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 
-	"strconv"
-
 	"hr-system-go/app/plugins"
 
 	"github.com/joho/godotenv"
@@ -31,12 +29,6 @@ func (e Env) GetEnv(key string) string {
 		return value
 	}
 	return e.defaultValues[key]
-}
-
-func (e Env) GetEnvInt(key string) int {
-	val := e.GetEnv(key)
-	intVal, _ := strconv.Atoi(val)
-	return intVal
 }
 
 func NewEnv() *Env {

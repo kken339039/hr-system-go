@@ -24,33 +24,33 @@ func (w bodyLogWriter) Write(b []byte) (int, error) {
 
 // LoggingMiddleware logs the incoming HTTP request & duration.
 func RequestLog(logger *logger.Logger) gin.HandlerFunc {
-	return func(c *gin.Context) {
+	return func(ctx *gin.Context) {
 		startTime := time.Now()
 
 		var requestBody []byte
-		if c.Request.Body != nil {
-			requestBody, _ = io.ReadAll(c.Request.Body)
+		if ctx.Request.Body != nil {
+			requestBody, _ = io.ReadAll(ctx.Request.Body)
 		}
 
-		c.Request.Body = io.NopCloser(bytes.NewBuffer(requestBody))
-		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
-		c.Writer = blw
+		ctx.Request.Body = io.NopCloser(bytes.NewBuffer(requestBody))
+		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: ctx.Writer}
+		ctx.Writer = blw
 
 		var payload interface{}
-		if c.Request.Method == "GET" {
-			payload = c.Request.URL.Query()
+		if ctx.Request.Method == "GET" {
+			payload = ctx.Request.URL.Query()
 		} else {
 			json.Unmarshal(requestBody, &payload)
 		}
 
-		c.Next()
+		ctx.Next()
 		endTime := time.Now()
 
 		logger.Info("Request",
-			zap.String("Path", c.Request.URL.Path),
-			zap.String("Method", c.Request.Method),
+			zap.String("Path", ctx.Request.URL.Path),
+			zap.String("Method", ctx.Request.Method),
 			zap.Any("Payload", payload),
-			zap.Int("Status Code", c.Writer.Status()),
+			zap.Int("Status Code", ctx.Writer.Status()),
 			zap.Any("Response", blw.body.String()),
 			zap.Duration("Duration", endTime.Sub(startTime)),
 		)

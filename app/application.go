@@ -4,12 +4,20 @@ import (
 	"hr-system-go/app/plugins"
 
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 )
 
 type Application struct {
 	fx      *fx.App
 	plugins []interface{}
 }
+
+type AppLogger struct {
+	fxevent.Logger
+}
+
+// todo: output fx event log by different action, eg: start, stop
+func (AppLogger) LogEvent(event fxevent.Event) {}
 
 func NewApplication() *Application {
 	return &Application{
@@ -32,6 +40,7 @@ func (a *Application) AddModule(module AppModuleInterface) {
 
 func (app *Application) Run(funcs ...interface{}) {
 	app.fx = fx.New(
+		fx.WithLogger(func() fxevent.Logger { return AppLogger{} }),
 		fx.Provide(
 			app.plugins...,
 		),
