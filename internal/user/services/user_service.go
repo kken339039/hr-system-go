@@ -133,11 +133,15 @@ func (s *UserService) changeUserDepartment(user *models.User, newDeploymentId *i
 			s.logger.Error("Cannot Find Updating Department", zap.Error(err))
 			return err
 		}
-		if err := newDepartment.UpdateEmployCount(s.db.DB(), 1); err != nil {
-			s.logger.Error("Cannot Update New Department Employ Count", zap.Error(err))
-			return err
-		}
 
+		// user not has department
+		if user.DepartmentID == nil {
+			if err := newDepartment.UpdateEmployCount(s.db.DB(), 1); err != nil {
+				s.logger.Error("Cannot Update New Department Employ Count", zap.Error(err))
+				return err
+			}
+		}
+		// user change department
 		if user.DepartmentID != nil && *user.DepartmentID != uint(*newDeploymentId) {
 			var oldDepartment *department_models.Department
 			if err := department_models.ValidScope(s.db.DB()).First(&oldDepartment, &user.DepartmentID).Error; err != nil {
