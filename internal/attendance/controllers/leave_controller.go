@@ -30,16 +30,12 @@ func NewLeaveController(logger *logger.Logger, service *services.LeaveService, a
 
 func (c *LeaveController) RegisterRoutes(r *gin.Engine) {
 	leaveRoutes := r.Group("/api/users/:userId/leave")
-	// clockRecordRoutes := r.Group("/api/users/:userId/attendance/clockRecord")
 	{
 		leaveRoutes.GET("", c.authService.AuthUserAbilityWrapper(c.listLeaves, constants.ABILITY_READ_LEAVE))
 		leaveRoutes.GET(":id", c.authService.AuthUserAbilityWrapper(c.getLeave, constants.ABILITY_READ_LEAVE))
 		leaveRoutes.POST("", c.authService.AuthUserAbilityWrapper(c.createLeave, constants.ABILITY_READ_WRITE_LEAVE))
 		leaveRoutes.PUT(":id", c.authService.AuthUserAbilityWrapper(c.updateLeave, constants.ABILITY_READ_WRITE_LEAVE))
 		leaveRoutes.DELETE(":id", c.authService.AuthUserAbilityWrapper(c.deleteLeave, constants.ABILITY_DELETE_LEAVE))
-
-		// clockRecord
-		// clockRecordRoutes.GET("", c.authService.AuthUserAbilityWrapper(c.listClockRecord, constants.ABILITY_READ_CLOCK_RECORD))
 	}
 }
 
@@ -48,12 +44,12 @@ func (c *LeaveController) listLeaves(ctx *gin.Context) {
 	userID, err := strconv.Atoi(userId)
 	if err != nil {
 		c.logger.Error("Cannot not parse User ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Get User"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Get Leaves"})
 		return
 	}
 
 	if !c.authService.VerifyAllGrants(ctx, userID, constants.ABILITY_ALL_GRANTS_LEAVE) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "Failed to Get User"})
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "Failed to Get Leaves"})
 		return
 	}
 
@@ -61,12 +57,13 @@ func (c *LeaveController) listLeaves(ctx *gin.Context) {
 	leaves, totalRows, err := c.service.FindLeavesByUserID(userID, pagination)
 	if err != nil {
 		c.logger.Error("Failed to Find User", zap.Error(err))
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Find users Error"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Find Leaves Error"})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, dtos.NewLeaveListResponse(leaves, totalRows, pagination))
 }
+
 func (c *LeaveController) getLeave(ctx *gin.Context) {
 	userId := ctx.Param("userId")
 	userID, err := strconv.Atoi(userId)
@@ -203,18 +200,3 @@ func (c *LeaveController) deleteLeave(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusNoContent, nil)
 }
-
-// func (c *LeaveController) listClockRecord(ctx *gin.Context) {
-// 	userId := ctx.Param("userId")
-// 	userID, err := strconv.Atoi(userId)
-// 	if err != nil {
-// 		c.logger.Error("Cannot not parse User ID", zap.Error(err))
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Get User"})
-// 		return
-// 	}
-
-// 	if !c.authService.VerifyAllGrants(ctx, userID, constants.ABILITY_ALL_GRANTS_CLOCK_RECORD) {
-// 		ctx.JSON(http.StatusForbidden, gin.H{"error": "Failed to Get User"})
-// 		return
-// 	}
-// }

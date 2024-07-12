@@ -8,9 +8,6 @@ import (
 type ClockRecord struct {
 	UserID   uint
 	User     user_models.User `gorm:"foreignKey:UserID"`
-	ClockIn  time.Time
-	ClockOut time.Time
-	Date     time.Time
-	Status   string `gorm:"default:'present'"`
-	Notes    string `gorm:"type:varchar(255)"`
+	ClockIn  time.Time        `gorm:"type:timestamp;default:current_timestamp()"`
+	ClockOut *time.Time       `gorm:"default:null"`
 }

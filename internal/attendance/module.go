@@ -16,12 +16,15 @@ type AttendanceModule struct {
 func (m *AttendanceModule) Controllers() []interface{} {
 	return []interface{}{
 		controllers.NewLeaveController,
+		controllers.NewClockRecordController,
 		func(
 			r *gin.Engine,
 			lc *controllers.LeaveController,
+			crc *controllers.ClockRecordController,
 			logger *logger.Logger,
 		) *AttendanceModule {
 			lc.RegisterRoutes(r)
+			crc.RegisterRoutes(r)
 			logger.Info("= Attendance module init")
 			return m
 		},
@@ -31,5 +34,6 @@ func (m *AttendanceModule) Controllers() []interface{} {
 func (m *AttendanceModule) Provide() []interface{} {
 	return []interface{}{
 		services.NewLeaveService,
+		services.NewClockRecordService,
 	}
 }
