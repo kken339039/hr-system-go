@@ -56,7 +56,7 @@ func (s AuthService) AuthUserAbilityWrapper(handler gin.HandlerFunc, requireAbil
 }
 
 // if current user has full permissions or is an admin, then they can view anyone's records
-func (s AuthService) VerifyAllGrants(ctx *gin.Context, targetUserId int, allGrantAbility string) bool {
+func (s AuthService) AbleToAccessOtherUserData(ctx *gin.Context, targetUserId int, allGrantAbility string) bool {
 	currentUser := getCurrentUser(ctx)
 	for _, abilityName := range currentUser.Role.GetAbilityNames() {
 		if abilityName == constants.ABILITY_ADMIN || abilityName == allGrantAbility {

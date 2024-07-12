@@ -42,14 +42,15 @@ func (c *LeaveController) RegisterRoutes(r *gin.Engine) {
 func (c *LeaveController) listLeaves(ctx *gin.Context) {
 	userId := ctx.Param("userId")
 	userID, err := strconv.Atoi(userId)
+	errorMsg := "Failed to Get Leaves"
 	if err != nil {
 		c.logger.Error("Cannot not parse User ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Get Leaves"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 
-	if !c.authService.VerifyAllGrants(ctx, userID, constants.ABILITY_ALL_GRANTS_LEAVE) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "Failed to Get Leaves"})
+	if !c.authService.AbleToAccessOtherUserData(ctx, userID, constants.ABILITY_ALL_GRANTS_LEAVE) {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": errorMsg})
 		return
 	}
 
@@ -57,7 +58,7 @@ func (c *LeaveController) listLeaves(ctx *gin.Context) {
 	leaves, totalRows, err := c.service.FindLeavesByUserID(userID, pagination)
 	if err != nil {
 		c.logger.Error("Failed to Find User", zap.Error(err))
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Find Leaves Error"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
 		return
 	}
 
@@ -67,16 +68,17 @@ func (c *LeaveController) listLeaves(ctx *gin.Context) {
 func (c *LeaveController) getLeave(ctx *gin.Context) {
 	userId := ctx.Param("userId")
 	userID, err := strconv.Atoi(userId)
+	errorMsg := "Failed to Get Leave"
 	if err != nil {
 		c.logger.Error("Cannot not parse User ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Create Leave"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 	currentUser := c.authService.GetCurrentUser(ctx)
 	// only self read one leave
 	if userID != int(currentUser.ID) {
 		c.logger.Error("Cannot create leave which not belong currentUser")
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "Failed to Create Leave"})
+		ctx.JSON(http.StatusForbidden, gin.H{"error": errorMsg})
 		return
 	}
 
@@ -84,14 +86,14 @@ func (c *LeaveController) getLeave(ctx *gin.Context) {
 	leaveID, err := strconv.Atoi(leaveId)
 	if err != nil {
 		c.logger.Error("Cannot not parse Leave ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Update Leave"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 
 	leave, err := c.service.FindLeaveByID(leaveID)
 	if err != nil {
 		c.logger.Error("Cannot not find leave", zap.Error(err))
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Find Leave"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
 		return
 	}
 
@@ -101,29 +103,30 @@ func (c *LeaveController) getLeave(ctx *gin.Context) {
 func (c *LeaveController) createLeave(ctx *gin.Context) {
 	userId := ctx.Param("userId")
 	userID, err := strconv.Atoi(userId)
+	errorMsg := "Failed to Create Leave"
 	if err != nil {
 		c.logger.Error("Cannot not parse User ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Create Leave"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 	currentUser := c.authService.GetCurrentUser(ctx)
 	// only self create leave
 	if userID != int(currentUser.ID) {
 		c.logger.Error("Cannot create leave which not belong currentUser")
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "Failed to Create Leave"})
+		ctx.JSON(http.StatusForbidden, gin.H{"error": errorMsg})
 		return
 	}
 	var payload dtos.CreateLeaveRequest
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		c.logger.Error("Cannot not parse create payload", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Create Leave"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 
 	leave, err := c.service.CreateLeaveByUser(currentUser, payload)
 	if err != nil {
 		c.logger.Error("Cannot not create leave", zap.Error(err))
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Create Leave"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
 		return
 	}
 
@@ -133,22 +136,23 @@ func (c *LeaveController) createLeave(ctx *gin.Context) {
 func (c *LeaveController) updateLeave(ctx *gin.Context) {
 	userId := ctx.Param("userId")
 	userID, err := strconv.Atoi(userId)
+	errorMsg := "Failed to Update Leave"
 	if err != nil {
 		c.logger.Error("Cannot not parse User ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Update Leave"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 	currentUser := c.authService.GetCurrentUser(ctx)
 	// only self update leave
 	if userID != int(currentUser.ID) {
 		c.logger.Error("Cannot update leave which not belong currentUser")
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "Failed to Update Leave"})
+		ctx.JSON(http.StatusForbidden, gin.H{"error": errorMsg})
 		return
 	}
 	var payload dtos.UpdateLeaveRequest
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		c.logger.Error("Cannot not parse update payload", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Create Leave"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 
@@ -156,14 +160,14 @@ func (c *LeaveController) updateLeave(ctx *gin.Context) {
 	leaveID, err := strconv.Atoi(leaveId)
 	if err != nil {
 		c.logger.Error("Cannot not parse Leave ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Update Leave"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 
 	leave, err := c.service.UpdateLeaveByID(leaveID, payload)
 	if err != nil {
 		c.logger.Error("Cannot not update leave", zap.Error(err))
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Update Leave"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
 		return
 	}
 
@@ -173,28 +177,29 @@ func (c *LeaveController) updateLeave(ctx *gin.Context) {
 func (c *LeaveController) deleteLeave(ctx *gin.Context) {
 	userId := ctx.Param("userId")
 	userID, err := strconv.Atoi(userId)
+	errorMsg := "Failed to Delete Leave"
 	if err != nil {
 		c.logger.Error("Cannot not parse User ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Delete Leave"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 	currentUser := c.authService.GetCurrentUser(ctx)
 	// only self delete leave
 	if userID != int(currentUser.ID) {
 		c.logger.Error("Cannot Delete leave which not belong currentUser")
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "Failed to Delete Leave"})
+		ctx.JSON(http.StatusForbidden, gin.H{"error": errorMsg})
 		return
 	}
 	leaveId := ctx.Param("id")
 	leaveID, err := strconv.Atoi(leaveId)
 	if err != nil {
 		c.logger.Error("Cannot not parse Leave ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Delete Leave"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 	if err := c.service.DeleteLeaveByID(leaveID); err != nil {
 		c.logger.Error("Cannot not delete leave", zap.Error(err))
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Delete Leave"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
 		return
 	}
 

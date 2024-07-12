@@ -54,22 +54,23 @@ func (c *DepartmentController) listDepartments(ctx *gin.Context) {
 func (c *DepartmentController) GetDepartment(ctx *gin.Context) {
 	departmentId := ctx.Param("id")
 	departmentID, err := strconv.Atoi(departmentId)
+	errorMsg := "Failed to Get Department"
 	if err != nil {
 		c.logger.Error("Cannot not parse Department ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Get Clock Records"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 
 	var payload dtos.CreateDepartmentRequest
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		c.logger.Error("Cannot not parse update payload", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Create Department"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 	department, err := c.service.FindDepartmentByID(departmentID)
 	if err != nil {
 		c.logger.Error("Failed to Create User", zap.Error(err))
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Find Department Error"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
 		return
 	}
 
@@ -78,15 +79,17 @@ func (c *DepartmentController) GetDepartment(ctx *gin.Context) {
 
 func (c *DepartmentController) CreateDepartment(ctx *gin.Context) {
 	var payload dtos.CreateDepartmentRequest
+	errorMsg := "Failed to Create Department"
+
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		c.logger.Error("Cannot not parse create payload", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Create Department"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 	department, err := c.service.CreateDepartment(payload)
 	if err != nil {
 		c.logger.Error("Cannot not create user", zap.Error(err))
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Create Department"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
 		return
 	}
 
@@ -96,22 +99,23 @@ func (c *DepartmentController) CreateDepartment(ctx *gin.Context) {
 func (c *DepartmentController) UpdateDepartment(ctx *gin.Context) {
 	departmentId := ctx.Param("id")
 	departmentID, err := strconv.Atoi(departmentId)
+	errorMsg := "Failed to Update Department"
 	if err != nil {
 		c.logger.Error("Cannot not parse Department ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Update Department"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 	var payload dtos.UpdateDepartmentRequest
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		c.logger.Error("Cannot not parse update payload", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Update Department"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 
 	department, err := c.service.UpdateDepartmentByID(departmentID, payload)
 	if err != nil {
 		c.logger.Error("Cannot not update user", zap.Error(err))
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Update User"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
 		return
 	}
 
@@ -121,15 +125,16 @@ func (c *DepartmentController) UpdateDepartment(ctx *gin.Context) {
 func (c *DepartmentController) DeleteDepartment(ctx *gin.Context) {
 	departmentId := ctx.Param("id")
 	departmentID, err := strconv.Atoi(departmentId)
+	errorMsg := "Failed to Delete Department"
 	if err != nil {
 		c.logger.Error("Cannot not parse Department ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Update Department"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 
 	if err := c.service.DeleteDepartmentByID(departmentID); err != nil {
 		c.logger.Error("Cannot not delete Department", zap.Error(err))
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Delete Department"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
 		return
 	}
 

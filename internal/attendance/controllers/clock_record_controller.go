@@ -39,14 +39,15 @@ func (c *ClockRecordController) RegisterRoutes(r *gin.Engine) {
 func (c *ClockRecordController) listClockRecord(ctx *gin.Context) {
 	userId := ctx.Param("userId")
 	userID, err := strconv.Atoi(userId)
+	errorMsg := "Failed to Get Clock Records"
 	if err != nil {
 		c.logger.Error("Cannot not parse User ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Get Clock Records"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 
-	if !c.authService.VerifyAllGrants(ctx, userID, constants.ABILITY_ALL_GRANTS_CLOCK_RECORD) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "Failed to Get Clock Records"})
+	if !c.authService.AbleToAccessOtherUserData(ctx, userID, constants.ABILITY_ALL_GRANTS_CLOCK_RECORD) {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": errorMsg})
 		return
 	}
 
@@ -54,7 +55,7 @@ func (c *ClockRecordController) listClockRecord(ctx *gin.Context) {
 	records, totalRows, err := c.service.FindClockRecordsByUserID(userID, pagination)
 	if err != nil {
 		c.logger.Error("Failed to Find User", zap.Error(err))
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Find Clock Records Error"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
 		return
 	}
 
@@ -64,23 +65,24 @@ func (c *ClockRecordController) listClockRecord(ctx *gin.Context) {
 func (c *ClockRecordController) touchClockRecord(ctx *gin.Context) {
 	userId := ctx.Param("userId")
 	userID, err := strconv.Atoi(userId)
+	errorMsg := "Failed to Touch Record"
 	if err != nil {
 		c.logger.Error("Cannot not parse User ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Touch Record"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 	currentUser := c.authService.GetCurrentUser(ctx)
 	// only self can clock in/out
 	if userID != int(currentUser.ID) {
 		c.logger.Error("Cannot create Clock Record which not belong currentUser")
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "Failed to Touch Record"})
+		ctx.JSON(http.StatusForbidden, gin.H{"error": errorMsg})
 		return
 	}
 
 	record, err := c.service.ClockByUser(currentUser)
 	if err != nil {
 		c.logger.Error("Cannot not touch ClockRecord", zap.Error(err))
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Touch ClockRecord"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
 		return
 	}
 	// ctx.JSON(http.StatusOK, nil)

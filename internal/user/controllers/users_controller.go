@@ -53,21 +53,22 @@ func (c *UsersController) listUsers(ctx *gin.Context) {
 func (c *UsersController) GetUser(ctx *gin.Context) {
 	userId := ctx.Param("userId")
 	userID, err := strconv.Atoi(userId)
+	errorMsg := "Failed to Get User"
 	if err != nil {
 		c.logger.Error("Cannot not parse User ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Get User"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 
-	if !c.authService.VerifyAllGrants(ctx, userID, constants.ABILITY_ALL_GRANTS_USER) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "Failed to Get User"})
+	if !c.authService.AbleToAccessOtherUserData(ctx, userID, constants.ABILITY_ALL_GRANTS_USER) {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": errorMsg})
 		return
 	}
 
 	user, err := c.service.FindUserByID(userID)
 	if err != nil {
 		c.logger.Error("Cannot not parse User ID", zap.Error(err))
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Get User"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
 		return
 	}
 
@@ -77,28 +78,29 @@ func (c *UsersController) GetUser(ctx *gin.Context) {
 func (c *UsersController) UpdateUser(ctx *gin.Context) {
 	userId := ctx.Param("userId")
 	userID, err := strconv.Atoi(userId)
+	errorMsg := "Failed to Update User"
 	if err != nil {
 		c.logger.Error("Cannot not parse User ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Get User"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 
-	if !c.authService.VerifyAllGrants(ctx, userID, constants.ABILITY_ALL_GRANTS_USER) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "Failed to Get User"})
+	if !c.authService.AbleToAccessOtherUserData(ctx, userID, constants.ABILITY_ALL_GRANTS_USER) {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": errorMsg})
 		return
 	}
 
 	var payload dtos.UpdateUserRequest
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		c.logger.Error("Cannot not parse update payload", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Update User"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 
 	user, err := c.service.UpdateUserByID(userID, payload)
 	if err != nil {
 		c.logger.Error("Cannot not update user", zap.Error(err))
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Update User"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
 		return
 	}
 
@@ -108,20 +110,21 @@ func (c *UsersController) UpdateUser(ctx *gin.Context) {
 func (c *UsersController) DeleteUser(ctx *gin.Context) {
 	userId := ctx.Param("userId")
 	userID, err := strconv.Atoi(userId)
+	errorMsg := "Failed to Delete User"
 	if err != nil {
 		c.logger.Error("Cannot not parse User ID", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to Get User"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
 		return
 	}
 
-	if !c.authService.VerifyAllGrants(ctx, userID, constants.ABILITY_ALL_GRANTS_USER) {
-		ctx.JSON(http.StatusForbidden, gin.H{"error": "Failed to Get User"})
+	if !c.authService.AbleToAccessOtherUserData(ctx, userID, constants.ABILITY_ALL_GRANTS_USER) {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": errorMsg})
 		return
 	}
 
 	if err := c.service.DeleteUserByID(userID); err != nil {
 		c.logger.Error("Cannot not delete user", zap.Error(err))
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Delete User"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
 		return
 	}
 
