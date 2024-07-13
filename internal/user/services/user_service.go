@@ -96,10 +96,11 @@ func (s *UserService) DeleteUserByID(userId int) error {
 
 	if user.DepartmentID != nil {
 		var department *department_models.Department
-		if err := department_models.ValidScope(s.db.DB()).First(&department, &user.DepartmentID).Error; err != nil {
+		if err := department_models.ValidScope(s.db.DB()).First(&department, *user.DepartmentID).Error; err != nil {
 			s.logger.Error("Cannot Find User's Department", zap.Error(err))
 			return err
 		}
+
 		if err := department.UpdateEmployCount(s.db.DB(), -1); err != nil {
 			s.logger.Error("Cannot Update Old Department Employ Count", zap.Error(err))
 			return err

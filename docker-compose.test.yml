@@ -1,25 +1,9 @@
 version: '3.8'
 
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: always
-    container_name: hr-system
-    depends_on:
-      - mysql
-      - redis
-    environment:
-      - ENVIRONMENT=${ENVIRONMENT}
-      - PROJECT_ROOT=${PROJECT_ROOT}
-    ports:
-      - "${PORT}:${PORT}"
-    command: ./api
-
-  mysql:
+  mysql_test:
     image: mysql:latest
-    container_name: mysql_db
+    container_name: mysql_db_test
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
@@ -29,9 +13,9 @@ services:
     ports:
       - "${DB_PORT}:${DB_PORT}"
 
-  redis:
+  redis_test:
     image: redis:latest
-    container_name: redis_store
+    container_name: redis_store_test
     restart: always
     ports:
       - "${REDIS_PORT}:${REDIS_PORT}"

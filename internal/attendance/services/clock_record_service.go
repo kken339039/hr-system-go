@@ -33,7 +33,7 @@ func (s ClockRecordService) FindClockRecordsByUserID(userID int, pagination util
 		return nil, 0, err
 	}
 
-	err := s.db.Model(&models.ClockRecord{}).Preload("User").Limit(pagination.Limit).Offset(pagination.Offset()).Order(pagination.Sort).Find(&records).Error
+	err := s.db.Model(&models.ClockRecord{}).Preload("User").Limit(pagination.Limit).Offset(pagination.Offset()).Order(pagination.Sort).Find(&records, "user_id = ?", userID).Error
 	if err != nil {
 		return nil, 0, err
 	}

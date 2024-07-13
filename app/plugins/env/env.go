@@ -37,8 +37,12 @@ func NewEnv() *Env {
 			"ENVIRONMENT": "development",
 		},
 	}
+	// for test with different package
+	projectRoot := os.Getenv("PROJECT_ROOT")
+	if len(projectRoot) == 0 {
+		projectRoot, _ = os.Getwd()
+	}
 
-	projectRoot, _ := os.Getwd()
 	path := fmt.Sprintf("%s/.env", projectRoot)
 
 	if os.Getenv("ENVIRONMENT") == "test" {

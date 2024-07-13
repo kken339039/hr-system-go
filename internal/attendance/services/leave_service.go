@@ -31,7 +31,7 @@ func (s LeaveService) FindLeavesByUserID(userID int, pagination utils.Pagination
 		return nil, 0, err
 	}
 
-	err := models.ValidLeaveScope(s.db.DB()).Preload("User").Limit(pagination.Limit).Offset(pagination.Offset()).Order(pagination.Sort).Find(&leaves).Error
+	err := models.ValidLeaveScope(s.db.DB()).Preload("User").Limit(pagination.Limit).Offset(pagination.Offset()).Order(pagination.Sort).Find(&leaves, "user_id = ?", userID).Error
 	if err != nil {
 		return nil, 0, err
 	}

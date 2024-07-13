@@ -14,7 +14,7 @@ func init() {
 	plugins.Registry = append(plugins.Registry, NewRouter)
 }
 
-func NewRouter(logger *logger.Logger, env *env.Env) *gin.Engine {
+func NewRouter(env *env.Env, logger *logger.Logger) *gin.Engine {
 	mode := env.GetEnv("ENVIRONMENT")
 	var ginMode string
 	switch strings.ToLower(mode) {
