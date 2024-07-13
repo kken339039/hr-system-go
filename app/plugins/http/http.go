@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -53,7 +54,7 @@ func NewHttpServer(logger *logger.Logger, env *env.Env, lc fx.Lifecycle, engine 
 func (s HttpServer) Serve() {
 	s.logger.Info("Starting HTTP server")
 	go func() {
-		if err := s.srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			s.logger.Fatal("Failed to start server", zap.Error(err))
 		}
 	}()
@@ -62,5 +63,5 @@ func (s HttpServer) Serve() {
 
 func (s HttpServer) Shutdown(ctx context.Context) {
 	s.logger.Info("Shutting down HTTP server")
-	s.srv.Shutdown(ctx)
+	_ = s.srv.Shutdown(ctx)
 }

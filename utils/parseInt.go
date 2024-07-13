@@ -1,14 +1,18 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
 )
 
+var ErrUnSupportType = errors.New("parse unsupported type")
+
 func ParseInterfaceToInt(value interface{}) (int, error) {
 	v := reflect.ValueOf(value)
 
+	// nolint:exhaustive
 	switch v.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return int(v.Int()), nil
@@ -19,6 +23,6 @@ func ParseInterfaceToInt(value interface{}) (int, error) {
 	case reflect.String:
 		return strconv.Atoi(v.String())
 	default:
-		return 0, fmt.Errorf("unsupported type: %v", v.Kind())
+		return 0, fmt.Errorf("%w: %v", ErrUnSupportType, v.Kind())
 	}
 }

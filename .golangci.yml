@@ -1,0 +1,31 @@
+run:
+  concurrency: 4
+  skip-files:
+    - _test\.go
+    - _mock\.go
+  skip-dirs:
+    - database
+  go: 1.20.2
+
+linters:
+  enable:
+    - goerr113
+    - bodyclose
+    - wastedassign
+    - usestdlibvars
+    - nilerr
+    - reassign
+    - govet
+    - durationcheck
+    - unparam
+    - prealloc
+    - misspell
+    - ineffassign
+    - makezero
+    - exhaustive
+    - goconst
+    - exportloopref
+    - gofmt
+    - forcetypeassert
+  disable:
+    - structcheck # disabled because of go1.18. https://github.com/golangci/golangci-lint/issues/2649

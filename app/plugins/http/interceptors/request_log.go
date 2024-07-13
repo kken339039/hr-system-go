@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"net/http"
 	"time"
 
 	"hr-system-go/app/plugins/logger"
@@ -37,10 +38,10 @@ func RequestLog(logger *logger.Logger) gin.HandlerFunc {
 		ctx.Writer = blw
 
 		var payload interface{}
-		if ctx.Request.Method == "GET" {
+		if ctx.Request.Method == http.MethodGet {
 			payload = ctx.Request.URL.Query()
 		} else {
-			json.Unmarshal(requestBody, &payload)
+			_ = json.Unmarshal(requestBody, &payload)
 		}
 
 		ctx.Next()

@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -92,7 +93,7 @@ func Run(db *gorm.DB) error {
 
 	// Get the last applied migration timestamp
 	var lastMigration MigrationRecord
-	if err := db.Order("timestamp desc").First(&lastMigration).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err := db.Order("timestamp desc").First(&lastMigration).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return fmt.Errorf("failed to get last migration: %w", err)
 	}
 
@@ -120,8 +121,8 @@ func Run(db *gorm.DB) error {
 func Rollback(db *gorm.DB) error {
 	var lastMigration MigrationRecord
 	if err := db.Order("timestamp desc").First(&lastMigration).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return fmt.Errorf("no migrations to rollback")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
 		}
 		return fmt.Errorf("failed to get last migration: %w", err)
 	}

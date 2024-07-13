@@ -12,7 +12,7 @@ type Role struct {
 }
 
 func (r *Role) GetAbilityNames() []string {
-	var abilityNames []string
+	abilityNames := make([]string, 0, len(r.Abilities))
 	for _, ability := range r.Abilities {
 		abilityNames = append(abilityNames, ability.Name)
 	}

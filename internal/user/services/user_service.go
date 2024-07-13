@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"hr-system-go/app/plugins/logger"
 	"hr-system-go/app/plugins/mysql"
 	department_models "hr-system-go/internal/department/models"
@@ -114,7 +113,8 @@ func (s *UserService) UpdatePassword(user *models.User, newPassword string) erro
 	err := bcrypt.CompareHashAndPassword([]byte(user.PasswordEncrypt), []byte(newPassword))
 	// err nil means new password is same as old
 	if err == nil {
-		return errors.New("password is not changed")
+		s.logger.Error("User does not change password")
+		return nil
 	}
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)

@@ -1,4 +1,10 @@
-.PHONY: start build db-init db-migration-create db-seed-create db-migration-run db-seed-run
+.PHONY: start build lint format db-init db-migration-create db-seed-create db-migration-run db-seed-run
+
+format:
+	@gofmt -e -s -w -l ./
+
+lint:
+	@golangci-lint run -v ./... --timeout 3m0s
 
 start:
 	@go run cmd/api.go
