@@ -11,6 +11,14 @@ import (
 	"go.uber.org/zap"
 )
 
+type DepartmentServiceInterface interface {
+	FindDepartments(pagination *utils.Pagination) ([]models.Department, int64, error)
+	FindDepartmentByID(id int) (*models.Department, error)
+	CreateDepartment(payload dtos.CreateDepartmentRequest) (*models.Department, error)
+	UpdateDepartmentByID(id int, payload dtos.UpdateDepartmentRequest) (*models.Department, error)
+	DeleteDepartmentByID(id int) error
+}
+
 type DepartmentService struct {
 	logger *logger.Logger
 	db     *mysql.MySqlStore

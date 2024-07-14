@@ -18,7 +18,6 @@ import (
 	"testing"
 	"time"
 
-	// "github.com/bxcodec/faker/v3"
 	"github.com/gin-gonic/gin"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -43,7 +42,6 @@ var (
 
 var _ = Describe("LeavesController and ClockRecordController", func() {
 	BeforeEach(func() {
-		mockLeaveService = (*mock_services.MockLeaveService)(nil)
 		gin.SetMode(gin.TestMode)
 		mockEnv := env.NewEnv()
 		mockLogger = logger.NewLogger(mockEnv)

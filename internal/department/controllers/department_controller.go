@@ -16,11 +16,11 @@ import (
 
 type DepartmentController struct {
 	logger      *logger.Logger
-	service     *services.DepartmentService
-	authService *auth_service.AuthService
+	service     services.DepartmentServiceInterface
+	authService auth_service.AuthServiceInterface
 }
 
-func NewDepartmentController(logger *logger.Logger, service *services.DepartmentService, authService *auth_service.AuthService) *DepartmentController {
+func NewDepartmentController(logger *logger.Logger, service services.DepartmentServiceInterface, authService auth_service.AuthServiceInterface) *DepartmentController {
 	return &DepartmentController{
 		logger:      logger,
 		service:     service,
@@ -41,7 +41,7 @@ func (c *DepartmentController) RegisterRoutes(r *gin.Engine) {
 
 func (c *DepartmentController) listDepartments(ctx *gin.Context) {
 	pagination := utils.NewPagination(ctx)
-	departments, totalRows, err := c.service.FindDepartments(pagination)
+	departments, totalRows, err := c.service.FindDepartments(&pagination)
 	if err != nil {
 		c.logger.Error("Failed to Find User", zap.Error(err))
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Find Departments Error"})
@@ -61,12 +61,6 @@ func (c *DepartmentController) GetDepartment(ctx *gin.Context) {
 		return
 	}
 
-	var payload dtos.CreateDepartmentRequest
-	if err := ctx.ShouldBindJSON(&payload); err != nil {
-		c.logger.Error("Cannot not parse update payload", zap.Error(err))
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": errorMsg})
-		return
-	}
 	department, err := c.service.FindDepartmentByID(departmentID)
 	if err != nil {
 		c.logger.Error("Failed to Create User", zap.Error(err))
@@ -93,7 +87,7 @@ func (c *DepartmentController) CreateDepartment(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"user": dtos.NewDepartmentResponse(department)})
+	ctx.JSON(http.StatusOK, dtos.NewDepartmentResponse(department))
 }
 
 func (c *DepartmentController) UpdateDepartment(ctx *gin.Context) {
@@ -119,7 +113,7 @@ func (c *DepartmentController) UpdateDepartment(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"user": dtos.NewDepartmentResponse(department)})
+	ctx.JSON(http.StatusOK, dtos.NewDepartmentResponse(department))
 }
 
 func (c *DepartmentController) DeleteDepartment(ctx *gin.Context) {
