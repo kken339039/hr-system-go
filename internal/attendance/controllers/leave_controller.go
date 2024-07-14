@@ -16,11 +16,11 @@ import (
 
 type LeaveController struct {
 	logger      *logger.Logger
-	service     *services.LeaveService
-	authService *auth_service.AuthService
+	service     services.LeaveServiceInterface
+	authService auth_service.AuthServiceInterface
 }
 
-func NewLeaveController(logger *logger.Logger, service *services.LeaveService, authService *auth_service.AuthService) *LeaveController {
+func NewLeaveController(logger *logger.Logger, service services.LeaveServiceInterface, authService auth_service.AuthServiceInterface) *LeaveController {
 	return &LeaveController{
 		logger:      logger,
 		service:     service,
@@ -55,7 +55,7 @@ func (c *LeaveController) listLeaves(ctx *gin.Context) {
 	}
 
 	pagination := utils.NewPagination(ctx)
-	leaves, totalRows, err := c.service.FindLeavesByUserID(userID, pagination)
+	leaves, totalRows, err := c.service.FindLeavesByUserID(userID, &pagination)
 	if err != nil {
 		c.logger.Error("Failed to Find User", zap.Error(err))
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})

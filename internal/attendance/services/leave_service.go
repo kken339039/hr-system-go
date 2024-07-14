@@ -11,6 +11,14 @@ import (
 	"go.uber.org/zap"
 )
 
+type LeaveServiceInterface interface {
+	FindLeavesByUserID(userID int, pagination *utils.Pagination) ([]models.Leave, int64, error)
+	FindLeaveByID(leaveID int) (*models.Leave, error)
+	CreateLeaveByUser(user *user_models.User, payload dtos.CreateLeaveRequest) (*models.Leave, error)
+	UpdateLeaveByID(leaveID int, payload dtos.UpdateLeaveRequest) (*models.Leave, error)
+	DeleteLeaveByID(leaveID int) error
+}
+
 type LeaveService struct {
 	logger *logger.Logger
 	db     *mysql.MySqlStore

@@ -16,6 +16,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type AuthServiceInterface interface {
+	AuthUserAbilityWrapper(handler gin.HandlerFunc, ability string) gin.HandlerFunc
+	AbleToAccessOtherUserData(ctx *gin.Context, userID int, ability string) bool
+	GetCurrentUser(ctx *gin.Context) *user_models.User
+}
+
 type AuthService struct {
 	logger *logger.Logger
 	env    *env.Env
@@ -67,7 +73,7 @@ func (s AuthService) AbleToAccessOtherUserData(ctx *gin.Context, targetUserId in
 	err := s.rdb.Get(redisKey, &abilitiesName)
 	if err != nil {
 		abilitiesName = currentUser.Role.GetAbilityNames()
-		s.rdb.Set(redisKey, abilitiesName, 24*time.Hour)
+		_ = s.rdb.Set(redisKey, abilitiesName, 24*time.Hour)
 	}
 
 	for _, abilityName := range abilitiesName {

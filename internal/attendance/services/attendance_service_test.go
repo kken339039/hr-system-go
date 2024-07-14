@@ -15,9 +15,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestLeaveService(t *testing.T) {
+func TestAttendanceService(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Leave & ClockRecord Suite")
+	RunSpecs(t, "Leave & ClockRecord Service Suite")
 }
 
 var (
