@@ -16,11 +16,11 @@ import (
 
 type ClockRecordController struct {
 	logger      *logger.Logger
-	service     *services.ClockRecordService
-	authService *auth_service.AuthService
+	service     services.ClockRecordServiceInterface
+	authService auth_service.AuthServiceInterface
 }
 
-func NewClockRecordController(logger *logger.Logger, service *services.ClockRecordService, authService *auth_service.AuthService) *ClockRecordController {
+func NewClockRecordController(logger *logger.Logger, service services.ClockRecordServiceInterface, authService auth_service.AuthServiceInterface) *ClockRecordController {
 	return &ClockRecordController{
 		logger:      logger,
 		service:     service,
@@ -52,7 +52,7 @@ func (c *ClockRecordController) listClockRecord(ctx *gin.Context) {
 	}
 
 	pagination := utils.NewPagination(ctx)
-	records, totalRows, err := c.service.FindClockRecordsByUserID(userID, pagination)
+	records, totalRows, err := c.service.FindClockRecordsByUserID(userID, &pagination)
 	if err != nil {
 		c.logger.Error("Failed to Find User", zap.Error(err))
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
@@ -85,6 +85,6 @@ func (c *ClockRecordController) touchClockRecord(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": errorMsg})
 		return
 	}
-	// ctx.JSON(http.StatusOK, nil)
+
 	ctx.JSON(http.StatusOK, gin.H{"leave": dtos.NewClockRecordResponse(record)})
 }

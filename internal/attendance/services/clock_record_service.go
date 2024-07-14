@@ -13,6 +13,11 @@ import (
 	"gorm.io/gorm"
 )
 
+type ClockRecordServiceInterface interface {
+	FindClockRecordsByUserID(userID int, pagination *utils.Pagination) ([]models.ClockRecord, int64, error)
+	ClockByUser(user *user_models.User) (*models.ClockRecord, error)
+}
+
 type ClockRecordService struct {
 	logger *logger.Logger
 	db     *mysql.MySqlStore

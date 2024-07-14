@@ -31,12 +31,14 @@ func TestAttendanceController(t *testing.T) {
 }
 
 var (
-	leaveController  *LeaveController
-	mockLeaveService *mock_services.MockLeaveService
-	mockAuthService  *mock_services.MockAuthService
-	router           *gin.Engine
-	mockEnv          *env.Env
-	mockLogger       *logger.Logger
+	leaveController        *LeaveController
+	clockRecordController  *ClockRecordController
+	mockLeaveService       *mock_services.MockLeaveService
+	mockClockRecordService *mock_services.MockClockRecordService
+	mockAuthService        *mock_services.MockAuthService
+	router                 *gin.Engine
+	mockEnv                *env.Env
+	mockLogger             *logger.Logger
 )
 
 var _ = Describe("LeavesController and ClockRecordController", func() {
@@ -47,9 +49,12 @@ var _ = Describe("LeavesController and ClockRecordController", func() {
 		mockLogger = logger.NewLogger(mockEnv)
 		mockLeaveService = &mock_services.MockLeaveService{}
 		mockAuthService = &mock_services.MockAuthService{}
+		mockClockRecordService = &mock_services.MockClockRecordService{}
 		leaveController = NewLeaveController(mockLogger, mockLeaveService, mockAuthService)
+		clockRecordController = NewClockRecordController(mockLogger, mockClockRecordService, mockAuthService)
 		router = gin.Default()
 		leaveController.RegisterRoutes(router)
+		clockRecordController.RegisterRoutes(router)
 	})
 
 	Describe("LeaveController", func() {
@@ -323,6 +328,90 @@ var _ = Describe("LeavesController and ClockRecordController", func() {
 
 					Expect(w.Code).To(Equal(http.StatusInternalServerError))
 				})
+			})
+		})
+	})
+	Describe("ClockRecordController", func() {
+		Describe("listClockRecord", func() {
+			It("should return a list of clock records", func() {
+				userId := "1"
+				userID, _ := strconv.Atoi(userId)
+				records := []models.ClockRecord{
+					{UserID: uint(userID)},
+					{UserID: uint(userID)},
+				}
+				totalRows := int64(2)
+
+				mockAuthService.On("AbleToAccessOtherUserData", mock.Anything, userID, constants.ABILITY_ALL_GRANTS_CLOCK_RECORD).Return(true)
+				mockClockRecordService.On("FindClockRecordsByUserID", userID, mock.AnythingOfType("*utils.Pagination")).Return(records, totalRows, nil)
+
+				req, _ := http.NewRequest("GET", "/api/users/"+userId+"/clockRecord", nil)
+				w := httptest.NewRecorder()
+
+				router.ServeHTTP(w, req)
+
+				Expect(w.Code).To(Equal(http.StatusOK))
+
+				var response map[string]interface{}
+				json.Unmarshal(w.Body.Bytes(), &response)
+
+				Expect(response["Items"]).To(HaveLen(2))
+			})
+
+			It("should return error when user is not authorized", func() {
+				userId := "1"
+				userID, _ := strconv.Atoi(userId)
+
+				mockAuthService.On("AbleToAccessOtherUserData", mock.Anything, userID, constants.ABILITY_ALL_GRANTS_CLOCK_RECORD).Return(false)
+
+				req, _ := http.NewRequest("GET", "/api/users/"+userId+"/clockRecord", nil)
+				w := httptest.NewRecorder()
+
+				router.ServeHTTP(w, req)
+
+				Expect(w.Code).To(Equal(http.StatusForbidden))
+			})
+		})
+
+		Describe("touchClockRecord", func() {
+			It("should create a new clock record", func() {
+				userId := "1"
+				userID, _ := strconv.Atoi(userId)
+				user := &user_models.User{}
+				user.ID = uint(userID)
+				record := &models.ClockRecord{UserID: uint(userID)}
+				record.ID = uint(1)
+
+				mockAuthService.On("GetCurrentUser", mock.Anything).Return(user)
+				mockClockRecordService.On("ClockByUser", user).Return(record, nil)
+
+				req, _ := http.NewRequest("POST", "/api/users/"+userId+"/clockRecord/clock", nil)
+				w := httptest.NewRecorder()
+
+				router.ServeHTTP(w, req)
+
+				Expect(w.Code).To(Equal(http.StatusOK))
+
+				var response map[string]interface{}
+				json.Unmarshal(w.Body.Bytes(), &response)
+
+				Expect(response["leave"]).NotTo(BeNil())
+			})
+
+			It("should return error when creating clock record for another user", func() {
+				userId := "1"
+				userID, _ := strconv.Atoi(userId)
+				user := &user_models.User{}
+				user.ID = uint(userID + 1)
+
+				mockAuthService.On("GetCurrentUser", mock.Anything).Return(user)
+
+				req, _ := http.NewRequest("POST", "/api/users/"+userId+"/clockRecord/clock", nil)
+				w := httptest.NewRecorder()
+
+				router.ServeHTTP(w, req)
+
+				Expect(w.Code).To(Equal(http.StatusForbidden))
 			})
 		})
 	})
