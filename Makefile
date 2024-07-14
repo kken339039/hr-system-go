@@ -18,7 +18,7 @@ build_db_cmd:
 test:
 	@docker-compose --env-file .env.test -f docker-compose.test.yml up -d
 	@ENVIRONMENT=test go run cmd/db/main.go init
-	@PROJECT_ROOT=$(PWD) ENVIRONMENT=test go run github.com/onsi/ginkgo/v2/ginkgo -r ./... --race -coverpkg=./internal/...
+	@PROJECT_ROOT=$(PWD) ENVIRONMENT=test go run github.com/onsi/ginkgo/v2/ginkgo -v -r ./... --race -coverpkg=./internal/...
 
 db-init:
 	@docker-compose --env-file .env run --rm app ./db init

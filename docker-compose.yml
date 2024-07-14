@@ -12,7 +12,6 @@ services:
       - redis
     environment:
       - ENVIRONMENT=${ENVIRONMENT}
-      - PROJECT_ROOT=${PROJECT_ROOT}
     ports:
       - "${PORT}:${PORT}"
     command: ./api
