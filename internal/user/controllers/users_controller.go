@@ -16,11 +16,11 @@ import (
 
 type UsersController struct {
 	logger      *logger.Logger
-	service     *services.UserService
-	authService *auth_service.AuthService
+	service     services.UserServiceInterface
+	authService auth_service.AuthServiceInterface
 }
 
-func NewUsersController(logger *logger.Logger, service *services.UserService, authService *auth_service.AuthService) *UsersController {
+func NewUsersController(logger *logger.Logger, service services.UserServiceInterface, authService auth_service.AuthServiceInterface) *UsersController {
 	return &UsersController{
 		logger:      logger,
 		service:     service,
@@ -40,7 +40,7 @@ func (c *UsersController) RegisterRoutes(r *gin.Engine) {
 
 func (c *UsersController) listUsers(ctx *gin.Context) {
 	pagination := utils.NewPagination(ctx)
-	users, totalRows, err := c.service.FindUsers(pagination)
+	users, totalRows, err := c.service.FindUsers(&pagination)
 	if err != nil {
 		c.logger.Error("Failed to Find User", zap.Error(err))
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Find users Error"})
@@ -72,7 +72,7 @@ func (c *UsersController) GetUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"user": dtos.NewUserResponse(user)})
+	ctx.JSON(http.StatusOK, dtos.NewUserResponse(user))
 }
 
 func (c *UsersController) UpdateUser(ctx *gin.Context) {
@@ -104,7 +104,7 @@ func (c *UsersController) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"user": dtos.NewUserResponse(user)})
+	ctx.JSON(http.StatusOK, dtos.NewUserResponse(user))
 }
 
 func (c *UsersController) DeleteUser(ctx *gin.Context) {

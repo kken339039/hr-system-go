@@ -13,6 +13,16 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type UserServiceInterface interface {
+	RegisterUser(user *models.User, password string) error
+	FindUsers(pagination *utils.Pagination) ([]models.User, int64, error)
+	FindUserByEmail(email string) (*models.User, error)
+	FindUserByID(userId int) (*models.User, error)
+	UpdateUserByID(userId int, payload dtos.UpdateUserRequest) (*models.User, error)
+	DeleteUserByID(userId int) error
+	UpdatePassword(user *models.User, newPassword string) error
+}
+
 type UserService struct {
 	logger *logger.Logger
 	db     *mysql.MySqlStore

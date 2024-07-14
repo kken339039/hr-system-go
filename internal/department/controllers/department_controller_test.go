@@ -39,6 +39,7 @@ var _ = Describe("DepartmentController", func() {
 		mockEnv := env.NewEnv()
 		mockLogger = logger.NewLogger(mockEnv)
 		mockDepartmentService = &mock_services.MockDepartmentService{}
+		mockAuthService = &mock_services.MockAuthService{}
 		departmentController = NewDepartmentController(mockLogger, mockDepartmentService, mockAuthService)
 		router = gin.Default()
 		departmentController.RegisterRoutes(router)
