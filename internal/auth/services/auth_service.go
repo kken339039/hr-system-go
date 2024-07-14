@@ -17,9 +17,11 @@ import (
 )
 
 type AuthServiceInterface interface {
+	AuthTokenWrapper(handler gin.HandlerFunc) gin.HandlerFunc
 	AuthUserAbilityWrapper(handler gin.HandlerFunc, ability string) gin.HandlerFunc
 	AbleToAccessOtherUserData(ctx *gin.Context, userID int, ability string) bool
 	GetCurrentUser(ctx *gin.Context) *user_models.User
+	GenerateToken(userID uint, username string) (string, error)
 }
 
 type AuthService struct {

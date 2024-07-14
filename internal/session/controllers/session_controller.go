@@ -14,11 +14,11 @@ import (
 
 type SessionsController struct {
 	logger      *logger.Logger
-	service     *services.UserService
-	authService *auth_service.AuthService
+	service     services.UserServiceInterface
+	authService auth_service.AuthServiceInterface
 }
 
-func NewSessionsController(logger *logger.Logger, service *services.UserService, authService *auth_service.AuthService) *SessionsController {
+func NewSessionsController(logger *logger.Logger, service services.UserServiceInterface, authService auth_service.AuthServiceInterface) *SessionsController {
 	return &SessionsController{
 		logger:      logger,
 		service:     service,
