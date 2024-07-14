@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"hr-system-go/app/plugins"
 	"hr-system-go/app/plugins/env"
@@ -18,6 +19,8 @@ import (
 func init() {
 	plugins.Registry = append(plugins.Registry, NewRedisStore)
 }
+
+var ErrDataIsNotPointer = errors.New("data is not pointer")
 
 type RedisStore struct {
 	env    *env.Env
@@ -71,7 +74,7 @@ func (s *RedisStore) Connect(host string, port string, db int) {
 
 func (s *RedisStore) Get(redisKey string, pointerData interface{}) error {
 	if reflect.TypeOf(pointerData).Kind() != reflect.Ptr {
-		return fmt.Errorf("pointerData must be a pointer")
+		return ErrDataIsNotPointer
 	}
 
 	data, err := s.rdb.Get(s.ctx, redisKey).Bytes()
@@ -79,6 +82,7 @@ func (s *RedisStore) Get(redisKey string, pointerData interface{}) error {
 		return err
 	}
 
+	//nolint:exhaustive,forcetypeassert
 	switch reflect.TypeOf(pointerData).Elem().Kind() {
 	case reflect.String:
 		*pointerData.(*string) = string(data)
