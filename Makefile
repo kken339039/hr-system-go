@@ -1,5 +1,7 @@
 .PHONY: start build lint test format db-init db-migration-create db-seed-create db-migration-run db-seed-run
 
+DOCKER_DB_CMD := docker-compose --env-file .env run --rm app ./db
+
 format:
 	@gofmt -e -s -w -l ./
 
@@ -21,22 +23,22 @@ test:
 	@PROJECT_ROOT=$(PWD) ENVIRONMENT=test go run github.com/onsi/ginkgo/v2/ginkgo -r ./... --race -coverpkg=./internal/...
 
 db-init:
-	@docker-compose --env-file .env run --rm app ./db init
+	@$(DOCKER_DB_CMD) init
 
 db-migration-create:
-	@docker-compose --env-file .env run --rm app ./db migration:create $(filter-out $@,$(MAKECMDGOALS))
+	@$(DOCKER_DB_CMD) migration:create $(filter-out $@,$(MAKECMDGOALS))
 
 db-migration-run:
-	@docker-compose --env-file .env run --rm app ./db migration:run
+	@$(DOCKER_DB_CMD) migration:run
 
 db-migration-rollback:
-	@docker-compose --env-file .env run --rm app ./db migration:rollback
+	@$(DOCKER_DB_CMD) migration:rollback
 
 db-seed-create:
-	@docker-compose --env-file .env run --rm app ./db seed:create $(filter-out $@,$(MAKECMDGOALS))
+	@$(DOCKER_DB_CMD) seed:create $(filter-out $@,$(MAKECMDGOALS))
 
 db-seed-run-all:
-	@docker-compose --env-file .env run --rm app ./db seed:runAll
+	@$(DOCKER_DB_CMD) seed:runAll
 
 db-seed-run:
-	@docker-compose --env-file run --rm app ./db seed:run $(filter-out $@,$(MAKECMDGOALS))
+	@$(DOCKER_DB_CMD) seed:run $(filter-out $@,$(MAKECMDGOALS))
