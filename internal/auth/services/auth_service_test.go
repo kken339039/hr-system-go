@@ -2,16 +2,20 @@ package services
 
 import (
 	"encoding/json"
+	"fmt"
 	"hr-system-go/app/plugins/env"
 	http_server "hr-system-go/app/plugins/http"
 	"hr-system-go/app/plugins/logger"
 	"hr-system-go/app/plugins/mysql"
+	"hr-system-go/app/plugins/redis"
 	"hr-system-go/internal/auth/constants"
 	auth_models "hr-system-go/internal/auth/models"
 	user_models "hr-system-go/internal/user/models"
 	http "net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/bxcodec/faker/v3"
 
@@ -30,6 +34,7 @@ var (
 	mockLogger  *logger.Logger
 	mockEnv     *env.Env
 	mockDB      *mysql.MySqlStore
+	mockRDS     *redis.RedisStore
 )
 
 var _ = BeforeSuite(func() {
@@ -37,7 +42,8 @@ var _ = BeforeSuite(func() {
 	mockLogger = logger.NewLogger(mockEnv)
 	http_server.NewRouter(mockEnv, mockLogger)
 	mockDB = mysql.NewMySqlStore(mockEnv, mockLogger)
-	authService = NewAuthService(mockLogger, mockEnv, mockDB)
+	mockRDS = redis.NewRedisStore(mockEnv, mockLogger)
+	authService = NewAuthService(mockLogger, mockEnv, mockDB, mockRDS)
 
 	mockDB.Connect(
 		mockEnv.GetEnv("DB_USER"),
@@ -48,10 +54,18 @@ var _ = BeforeSuite(func() {
 		mockEnv.GetEnv("DB_PARAMS"),
 	)
 
+	redisDB, _ := strconv.Atoi(mockEnv.GetEnv("REDIS_DB"))
+	mockRDS.Connect(
+		mockEnv.GetEnv("REDIS_HOST"),
+		mockEnv.GetEnv("REDIS_PORT"),
+		redisDB,
+	)
+
 	mockDB.DB().AutoMigrate(&user_models.User{}, &auth_models.Role{}, &auth_models.Ability{})
 })
 
 var _ = AfterSuite(func() {
+	mockRDS.ClearAll()
 	mockDB.DB().Migrator().DropTable(&user_models.User{}, &auth_models.Role{}, &auth_models.Ability{})
 	mockDB.Close()
 })
@@ -67,7 +81,6 @@ var _ = Describe("AuthService", func() {
 
 	Describe("AbleToAccessOtherUserData", func() {
 		var ctx *gin.Context
-
 		BeforeEach(func() {
 			ctx, _ = gin.CreateTestContext(httptest.NewRecorder())
 		})
@@ -75,13 +88,15 @@ var _ = Describe("AuthService", func() {
 		Context("when user has admin ability", func() {
 			It("should return true", func() {
 				user := &user_models.User{
+					Email: faker.Email(),
 					Role: &auth_models.Role{
 						Abilities: []auth_models.Ability{{Name: constants.ABILITY_ADMIN}},
 					},
 				}
+				mockDB.DB().Create(&user)
 				ctx.Set("currentUser", user)
 
-				result := authService.AbleToAccessOtherUserData(ctx, 2, "some_ability")
+				result := authService.AbleToAccessOtherUserData(ctx, int(user.ID), "some_ability")
 				Expect(result).To(BeTrue())
 			})
 		})
@@ -89,14 +104,15 @@ var _ = Describe("AuthService", func() {
 		Context("when user has the required ability", func() {
 			It("should return true", func() {
 				user := &user_models.User{
+					Email: faker.Email(),
 					Role: &auth_models.Role{
 						Abilities: []auth_models.Ability{{Name: "required_ability"}},
 					},
 				}
-				user.ID = 1
+				mockDB.DB().Create(&user)
 				ctx.Set("currentUser", user)
 
-				result := authService.AbleToAccessOtherUserData(ctx, 2, "required_ability")
+				result := authService.AbleToAccessOtherUserData(ctx, int(user.ID), "required_ability")
 				Expect(result).To(BeTrue())
 			})
 		})
@@ -104,14 +120,15 @@ var _ = Describe("AuthService", func() {
 		Context("when user is accessing their own data", func() {
 			It("should return true", func() {
 				user := &user_models.User{
+					Email: faker.Email(),
 					Role: &auth_models.Role{
 						Abilities: []auth_models.Ability{{Name: "some_ability"}},
 					},
 				}
-				user.ID = 1
+				mockDB.DB().Create(&user)
 				ctx.Set("currentUser", user)
 
-				result := authService.AbleToAccessOtherUserData(ctx, 1, "some_ability")
+				result := authService.AbleToAccessOtherUserData(ctx, int(user.ID), "some_ability")
 				Expect(result).To(BeTrue())
 			})
 		})
@@ -119,15 +136,53 @@ var _ = Describe("AuthService", func() {
 		Context("when user doesn't have permission", func() {
 			It("should return false", func() {
 				user := &user_models.User{
+					Email: faker.Email(),
 					Role: &auth_models.Role{
 						Abilities: []auth_models.Ability{{Name: "some_ability"}},
 					},
 				}
-				user.ID = 1
+				mockDB.DB().Create(&user)
 				ctx.Set("currentUser", user)
 
-				result := authService.AbleToAccessOtherUserData(ctx, 2, "required_ability")
+				result := authService.AbleToAccessOtherUserData(ctx, 999, "required_ability")
 				Expect(result).To(BeFalse())
+			})
+		})
+
+		Context("When abilities are cached in Redis", func() {
+			It("should return true with cache abilities", func() {
+				user := &user_models.User{
+					Email: faker.Email(),
+					Role: &auth_models.Role{
+						Abilities: []auth_models.Ability{{Name: constants.ABILITY_ADMIN}},
+					},
+				}
+				mockDB.DB().Create(&user)
+				ctx.Set("currentUser", user)
+				redisKey := fmt.Sprintf("cache:users/%v/abilitiesNames", int(user.ID))
+				mockRDS.Set(redisKey, []string{constants.ABILITY_ADMIN}, 24*time.Hour)
+
+				var abilities []string
+				Expect(mockRDS.Get(redisKey, &abilities)).To(BeNil())
+				result := authService.AbleToAccessOtherUserData(ctx, int(user.ID), "required_ability")
+				Expect(result).To(BeTrue())
+			})
+
+			It("should return true without cache abilities", func() {
+				user := &user_models.User{
+					Email: faker.Email(),
+					Role: &auth_models.Role{
+						Abilities: []auth_models.Ability{{Name: constants.ABILITY_ADMIN}},
+					},
+				}
+				mockDB.DB().Create(&user)
+				ctx.Set("currentUser", user)
+				redisKey := fmt.Sprintf("cache:users/%v/abilitiesNames", int(user.ID))
+
+				var abilities []string
+				Expect(mockRDS.Get(redisKey, &abilities)).NotTo(BeNil())
+				result := authService.AbleToAccessOtherUserData(ctx, int(user.ID), "required_ability")
+				Expect(result).To(BeTrue())
 			})
 		})
 	})

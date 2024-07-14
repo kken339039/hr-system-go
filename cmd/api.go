@@ -50,11 +50,11 @@ func main() {
 			env.GetEnv("DB_PARAMS"),
 		)
 		// REDIS connect
-		redis_db, _ := strconv.Atoi(env.GetEnv("REDIS_DB"))
+		redisDB, _ := strconv.Atoi(env.GetEnv("REDIS_DB"))
 		redis.Connect(
 			env.GetEnv("REDIS_HOST"),
 			env.GetEnv("REDIS_PORT"),
-			redis_db,
+			redisDB,
 		)
 	})
 }

@@ -1,9 +1,11 @@
 package services
 
 import (
+	"fmt"
 	"hr-system-go/app/plugins/env"
 	"hr-system-go/app/plugins/logger"
 	"hr-system-go/app/plugins/mysql"
+	"hr-system-go/app/plugins/redis"
 	"hr-system-go/internal/auth/constants"
 	user_models "hr-system-go/internal/user/models"
 	"hr-system-go/utils"
@@ -18,14 +20,16 @@ type AuthService struct {
 	logger *logger.Logger
 	env    *env.Env
 	db     *mysql.MySqlStore
+	rdb    *redis.RedisStore
 	jwtKey []byte
 }
 
-func NewAuthService(logger *logger.Logger, env *env.Env, db *mysql.MySqlStore) *AuthService {
+func NewAuthService(logger *logger.Logger, env *env.Env, db *mysql.MySqlStore, rdb *redis.RedisStore) *AuthService {
 	return &AuthService{
 		logger: logger,
 		env:    env,
 		db:     db,
+		rdb:    rdb,
 		jwtKey: []byte(env.GetEnv("JWT_TOKEN_KEY")),
 	}
 }
@@ -58,7 +62,15 @@ func (s AuthService) AuthUserAbilityWrapper(handler gin.HandlerFunc, requireAbil
 // if current user has full permissions or is an admin, then they can view anyone's records
 func (s AuthService) AbleToAccessOtherUserData(ctx *gin.Context, targetUserId int, allGrantAbility string) bool {
 	currentUser := getCurrentUser(ctx)
-	for _, abilityName := range currentUser.Role.GetAbilityNames() {
+	var abilitiesName []string
+	redisKey := fmt.Sprintf("cache:users/%v/abilitiesNames", targetUserId)
+	err := s.rdb.Get(redisKey, &abilitiesName)
+	if err != nil {
+		abilitiesName = currentUser.Role.GetAbilityNames()
+		s.rdb.Set(redisKey, abilitiesName, 24*time.Hour)
+	}
+
+	for _, abilityName := range abilitiesName {
 		if abilityName == constants.ABILITY_ADMIN || abilityName == allGrantAbility {
 			return true
 		}
