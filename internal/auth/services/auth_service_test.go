@@ -30,7 +30,7 @@ func TestAuthService(t *testing.T) {
 }
 
 var (
-	authService *AuthService
+	authService AuthServiceInterface
 	mockLogger  *logger.Logger
 	mockEnv     *env.Env
 	mockDB      *mysql.MySqlStore

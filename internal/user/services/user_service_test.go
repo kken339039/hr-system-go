@@ -22,7 +22,7 @@ func TestUserService(t *testing.T) {
 }
 
 var (
-	userService *UserService
+	userService UserServiceInterface
 	mockEnv     *env.Env
 	mockLogger  *logger.Logger
 	mockDB      *mysql.MySqlStore
@@ -92,7 +92,7 @@ var _ = Describe("UserService", func() {
 			}
 			mockDB.DB().Create(mockUsers)
 
-			users, totalCount, err := userService.FindUsers(pagination)
+			users, totalCount, err := userService.FindUsers(&pagination)
 			Expect(err).ShouldNot(HaveOccurred())
 			Expect(users).To(HaveLen(2))
 			Expect(totalCount).To(Equal(int64(2)))

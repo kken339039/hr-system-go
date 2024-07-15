@@ -32,7 +32,7 @@ type AuthService struct {
 	jwtKey []byte
 }
 
-func NewAuthService(logger *logger.Logger, env *env.Env, db *mysql.MySqlStore, rdb *redis.RedisStore) *AuthService {
+func NewAuthService(logger *logger.Logger, env *env.Env, db *mysql.MySqlStore, rdb *redis.RedisStore) AuthServiceInterface {
 	return &AuthService{
 		logger: logger,
 		env:    env,

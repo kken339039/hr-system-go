@@ -28,7 +28,7 @@ type UserService struct {
 	db     *mysql.MySqlStore
 }
 
-func NewUserService(logger *logger.Logger, db *mysql.MySqlStore) *UserService {
+func NewUserService(logger *logger.Logger, db *mysql.MySqlStore) UserServiceInterface {
 	return &UserService{
 		logger: logger,
 		db:     db,
@@ -48,7 +48,7 @@ func (s *UserService) RegisterUser(user *models.User, password string) error {
 	return nil
 }
 
-func (s *UserService) FindUsers(pagination utils.Pagination) ([]models.User, int64, error) {
+func (s *UserService) FindUsers(pagination *utils.Pagination) ([]models.User, int64, error) {
 	var users []models.User
 	var totalCount int64 = 0
 

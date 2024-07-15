@@ -24,14 +24,14 @@ type DepartmentService struct {
 	db     *mysql.MySqlStore
 }
 
-func NewDepartmentService(logger *logger.Logger, db *mysql.MySqlStore) *DepartmentService {
+func NewDepartmentService(logger *logger.Logger, db *mysql.MySqlStore) DepartmentServiceInterface {
 	return &DepartmentService{
 		logger: logger,
 		db:     db,
 	}
 }
 
-func (s *DepartmentService) FindDepartments(pagination utils.Pagination) ([]models.Department, int64, error) {
+func (s *DepartmentService) FindDepartments(pagination *utils.Pagination) ([]models.Department, int64, error) {
 	var departments []models.Department
 	var totalCount int64 = 0
 

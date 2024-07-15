@@ -19,7 +19,7 @@ func TestDepartmentService(t *testing.T) {
 }
 
 var (
-	departmentService *DepartmentService
+	departmentService DepartmentServiceInterface
 	mockEnv           *env.Env
 	mockLogger        *logger.Logger
 	mockDB            *mysql.MySqlStore
@@ -60,7 +60,7 @@ var _ = Describe("DepartmentService", func() {
 
 			mockDB.DB().Create(departments)
 
-			result, totalCount, err := departmentService.FindDepartments(pagination)
+			result, totalCount, err := departmentService.FindDepartments(&pagination)
 
 			Expect(err).To(BeNil())
 			Expect(result).To(HaveLen(2))

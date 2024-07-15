@@ -24,14 +24,14 @@ type LeaveService struct {
 	db     *mysql.MySqlStore
 }
 
-func NewLeaveService(logger *logger.Logger, db *mysql.MySqlStore) *LeaveService {
+func NewLeaveService(logger *logger.Logger, db *mysql.MySqlStore) LeaveServiceInterface {
 	return &LeaveService{
 		logger: logger,
 		db:     db,
 	}
 }
 
-func (s LeaveService) FindLeavesByUserID(userID int, pagination utils.Pagination) ([]models.Leave, int64, error) {
+func (s LeaveService) FindLeavesByUserID(userID int, pagination *utils.Pagination) ([]models.Leave, int64, error) {
 	var leaves []models.Leave
 	var totalCount int64 = 0
 

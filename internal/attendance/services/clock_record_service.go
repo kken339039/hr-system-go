@@ -23,14 +23,14 @@ type ClockRecordService struct {
 	db     *mysql.MySqlStore
 }
 
-func NewClockRecordService(logger *logger.Logger, db *mysql.MySqlStore) *ClockRecordService {
+func NewClockRecordService(logger *logger.Logger, db *mysql.MySqlStore) ClockRecordServiceInterface {
 	return &ClockRecordService{
 		logger: logger,
 		db:     db,
 	}
 }
 
-func (s ClockRecordService) FindClockRecordsByUserID(userID int, pagination utils.Pagination) ([]models.ClockRecord, int64, error) {
+func (s *ClockRecordService) FindClockRecordsByUserID(userID int, pagination *utils.Pagination) ([]models.ClockRecord, int64, error) {
 	var records []models.ClockRecord
 	var totalCount int64 = 0
 

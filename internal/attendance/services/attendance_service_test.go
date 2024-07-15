@@ -21,8 +21,8 @@ func TestAttendanceService(t *testing.T) {
 }
 
 var (
-	clockRecordService *ClockRecordService
-	leaveService       *LeaveService
+	clockRecordService ClockRecordServiceInterface
+	leaveService       LeaveServiceInterface
 	mockEnv            *env.Env
 	mockLogger         *logger.Logger
 	mockDB             *mysql.MySqlStore
@@ -90,7 +90,7 @@ var _ = Describe("LeavesService and ClockRecordService", func() {
 				}
 				mockDB.DB().Create(&mockClockRecord)
 
-				records, totalCount, err := clockRecordService.FindClockRecordsByUserID(int(mockUser.ID), pagination)
+				records, totalCount, err := clockRecordService.FindClockRecordsByUserID(int(mockUser.ID), &pagination)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(records).To(HaveLen(2))
 				Expect(totalCount).To(Equal(int64(2)))
@@ -136,35 +136,6 @@ var _ = Describe("LeavesService and ClockRecordService", func() {
 					Expect(record.ClockOut).ToNot(BeZero())
 				})
 			})
-
-			// Context("when an error occurs", func() {
-			// 	It("should return an error when clocking in fails", func() {
-			// 		mock.ExpectQuery("SELECT (.+) FROM `clock_records`").
-			// 			WillReturnError(gorm.ErrRecordNotFound)
-
-			// 		mock.ExpectBegin()
-			// 		mock.ExpectExec("INSERT INTO `clock_records`").
-			// 			WillReturnError(errors.New("database error"))
-			// 		mock.ExpectRollback()
-
-			// 		_, err := clockRecordService.ClockByUser(user)
-			// 		Expect(err).To(HaveOccurred())
-			// 	})
-
-			// 	It("should return an error when clocking out fails", func() {
-			// 		mock.ExpectQuery("SELECT (.+) FROM `clock_records`").
-			// 			WillReturnRows(sqlmock.NewRows([]string{"id", "user_id", "clock_in"}).
-			// 				AddRow(1, user.ID, time.Now().Add(-8*time.Hour)))
-
-			// 		mock.ExpectBegin()
-			// 		mock.ExpectExec("UPDATE `clock_records`").
-			// 			WillReturnError(errors.New("database error"))
-			// 		mock.ExpectRollback()
-
-			// 		_, err := clockRecordService.ClockByUser(user)
-			// 		Expect(err).To(HaveOccurred())
-			// 	})
-			// })
 		})
 	})
 	Describe("LeavesService", func() {
@@ -203,7 +174,7 @@ var _ = Describe("LeavesService and ClockRecordService", func() {
 				}
 				mockDB.DB().Create(mockLeaves)
 
-				leaves, totalCount, err := leaveService.FindLeavesByUserID(int(mockUser.ID), pagination)
+				leaves, totalCount, err := leaveService.FindLeavesByUserID(int(mockUser.ID), &pagination)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(leaves).To(HaveLen(2))
 				Expect(totalCount).To(Equal(int64(2)))
