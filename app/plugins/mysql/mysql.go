@@ -1,6 +1,8 @@
 package mysql
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"hr-system-go/app/plugins"
 	"hr-system-go/app/plugins/env"
@@ -19,6 +21,8 @@ func init() {
 }
 
 var Store *MySqlStore
+var ConnectRetryTime = 10 * time.Second
+var ErrConnectTimeout = errors.New("connect Database timeout")
 
 type MySqlStore struct {
 	env    *env.Env
@@ -42,17 +46,36 @@ func NewMySqlStore(env *env.Env, logger *logger.Logger) *MySqlStore {
 
 func (s *MySqlStore) Connect(username string, password string, database string, host string, port string, params string) {
 	var paramsString string
+	var db *gorm.DB
+
 	if params != "" {
 		paramsString = fmt.Sprintf("?%s", params)
 	} else {
 		paramsString = ""
 	}
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s%s", username, password, host, port, database, paramsString)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		NamingStrategy: schema.NamingStrategy{
-			SingularTable: true,
-		},
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
+
+	err := tryingConnectDatabase(ctx, s.logger, func() error {
+		var err error
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s%s", username, password, host, port, database, paramsString)
+		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+			NamingStrategy: schema.NamingStrategy{
+				SingularTable: true,
+			},
+		})
+
+		if err != nil {
+			return err
+		}
+
+		sqlDB, err := db.DB()
+		if err != nil {
+			return err
+		}
+
+		return sqlDB.Ping()
 	})
 
 	if err != nil {
@@ -81,4 +104,20 @@ func (s *MySqlStore) Close() {
 	instance, _ := s.db.DB()
 	instance.Close()
 	s.logger.Info("Close database connection")
+}
+
+func tryingConnectDatabase(ctx context.Context, logger *logger.Logger, checkFunc func() error) error {
+	for {
+		err := checkFunc()
+		if err == nil {
+			return nil
+		}
+
+		select {
+		case <-ctx.Done():
+			return ErrConnectTimeout
+		case <-time.After(ConnectRetryTime):
+			logger.Info("Retrying for connect Database")
+		}
+	}
 }
