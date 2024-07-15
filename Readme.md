@@ -2,7 +2,7 @@
 
 ## Overview
 
-HR System is a simple human resources management API Hub that provides functions such as registration login/logout, administrator information, clock in/out,and processing leave requests.
+HR System is a simple human resources management API Hub that provides functions such as User registration, login/logout, Employee information, clock in/out , Department management and processing leave requests.
 
 ## Features
 
