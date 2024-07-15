@@ -159,7 +159,7 @@ make db-seed-run ${fileName}
 ### Setup the HTTP server in local
 
 1. install Go 1.22.5
-2. copy `.env.example` as `.env` and update the values
+2. copy `.env.example` as `.env` and update the values(ex: database host -> 127.0.0.1)
 3. Run `go mod download` to download the go modules
 4. go install github.com/cosmtrek/air@latest
 5. Run `air` to start the HTTP server
